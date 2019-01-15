@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://www.ehcache.org/ehcache.xsd"
+        updateCheck="true"
+        monitoring="autodetect"
+        dynamicConfig="true">
+
+    <cache name="otp"
+            maxElementsInMemory="50"
+            eternal="false"
+            timeToLive="250"
+            timeToIdle="50"
+            overflowToDisk="false"
+            memoryStoreEvictionPolicy="FIFO"
+            transactionalMode="off">
+    </cache>
+
+    <cache name="signup"
+            maxElementsInMemory="50"
+            eternal="false"
+            timeToLive="3750"
+            timeToIdle="50"
+            overflowToDisk="false"
+            memoryStoreEvictionPolicy="FIFO"
+            transactionalMode="off">
+    </cache>
+
+
+
+</ehcache>
