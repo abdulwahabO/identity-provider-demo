@@ -1,11 +1,11 @@
 package me.identityprovider.common.model;
 
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import org.springframework.stereotype.Controller;
 
 @Entity
 @Table(name = "CLIENT_APP")
@@ -15,7 +15,10 @@ public class App {
     private String id;
 
     @Column(name = "SECRET", nullable = false)
-    private String secret; // todo: use Generator.
+    private String secret;
+
+    @Column(nullable = false, name = "APP_NAME")
+    private String name;
 
     @Column(name = "GRANT_TYPE", nullable = false)
     private GrantType grantType;
@@ -23,17 +26,8 @@ public class App {
     @Column(name = "LOGIN_REDIRECT_URL")
     private String loginRedirect;
 
-    @ManyToOne
-    @JoinColumn(name = "DEVELOPER_ID")
-    private Developer developer;
-
-    public Developer getDeveloper() {
-        return developer;
-    }
-
-    public void setDeveloper(Developer developer) {
-        this.developer = developer;
-    }
+    @Column(name = "DEVELOPER_ID")
+    private String developerId;
 
     public String getId() {
         return id;
@@ -49,6 +43,22 @@ public class App {
 
     public void setSecret(String secret) {
         this.secret = secret;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDeveloperId() {
+        return developerId;
+    }
+
+    public void setDeveloperId(String developerId) {
+        this.developerId = developerId;
     }
 
     public GrantType getGrantType() {

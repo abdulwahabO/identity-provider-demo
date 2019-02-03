@@ -1,10 +1,11 @@
 package me.identityprovider.authserver.controller;
 
 import javax.validation.Valid;
+
 import me.identityprovider.authserver.dto.AccessToken;
 import me.identityprovider.authserver.exception.LoginException;
 import me.identityprovider.authserver.service.LoginService;
-import me.identityprovider.common.exception.ServiceException;
+import me.identityprovider.common.exception.NoSuchAppException;
 import me.identityprovider.common.model.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class LoginController {
     // todo: confirm from docs that requestAttribute annotation can bind to form param.
     @PostMapping("/submit-email")
     public String sendPassword(@RequestAttribute(name = "email") String email,
-                               @RequestAttribute(name = "appId") String appId, Model model) throws ServiceException {
+                               @RequestAttribute(name = "appId") String appId, Model model) throws NoSuchAppException {
 
         User.UserId id = new User.UserId(appId, email);
         boolean started = service.startLogin(id); // todo: if started show form else show message on login page.
@@ -50,7 +51,7 @@ public class LoginController {
     // todo; Read Spring Boot docs on how to write Exception Handlers, custom page.
 
     @PostMapping("/authenticate")
-    public String authenticate(@RequestAttribute("otp") String password) throws ServiceException, LoginException {
+    public String authenticate(@RequestAttribute("otp") String password) throws NoSuchAppException, LoginException {
 
         // todo: call service to check cache and sign JWT if Implicit app.
         String redirectUrl = service.finishLogin(password);
@@ -60,13 +61,19 @@ public class LoginController {
         return redirectUrl; // todo: redirect back to client with JWT access token.
     }
 
+    // todo: See starred Github for template to use for login and register, attribute appropriately.
+
+
+
     // todo: REST endpoint used by server side client to obtain accesstoken.
     @PostMapping("/accesstoken")
     @ResponseBody
-    public AccessToken.Response accessToken(@Valid @RequestBody AccessToken.Request body) throws LoginException {
-
+    public AccessToken.Response accessToken(@Valid @RequestBody AccessToken.Request body) throws NoSuchAppException,
+            LoginException {
         return service.getAccessToken(body);
     }
+
+    //
 
     // todo: write ExceptionHandler.
 }

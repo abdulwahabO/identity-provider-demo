@@ -1,9 +1,6 @@
 **/target/**
 !.mvn/wrapper/maven-wrapper.jar
 
-specifications.txt
-project-roadmap.txt
-
 ### STS ###
 .apt_generated
 .classpath

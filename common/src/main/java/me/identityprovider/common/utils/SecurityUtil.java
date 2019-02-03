@@ -2,7 +2,8 @@ package me.identityprovider.common.utils;
 
 import java.util.Map;
 
-public class Generator {
+// todo: JavaDoc
+public class SecurityUtil {
 
     // todo: consider renaming this class to SecurityUtils
 

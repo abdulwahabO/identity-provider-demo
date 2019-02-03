@@ -1,6 +1,6 @@
-package me.identityprovider.authserver.dto;
+package me.identityprovider.common.dto;
 
-public class SignUpDetails {
+public class UserDto {
 
     private String name;
     private String email;

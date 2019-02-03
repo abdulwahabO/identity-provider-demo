@@ -8,13 +8,14 @@ import javax.annotation.PostConstruct;
 
 import me.identityprovider.authserver.dto.AccessToken;
 import me.identityprovider.authserver.exception.LoginException;
-import me.identityprovider.common.exception.ServiceException;
+import me.identityprovider.common.exception.NoSuchAppException;
+import me.identityprovider.common.exception.UserException;
 import me.identityprovider.common.message.TextSender;
 import me.identityprovider.common.model.App;
 import me.identityprovider.common.model.User;
 import me.identityprovider.common.service.AppService;
 import me.identityprovider.common.service.UserService;
-import me.identityprovider.common.utils.Generator;
+import me.identityprovider.common.utils.SecurityUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,16 +24,15 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
-import static me.identityprovider.common.utils.Generator.jwt;
+import static me.identityprovider.common.utils.SecurityUtil.jwt;
 
 @Service
 public class LoginService {
 
     private Logger logger = LoggerFactory.getLogger(LoginService.class);
-    private static final String OTP_CACHE = "";
+    private static final String OTP_CACHE = ""; // todo
     private static final String AUTH_CODE_CACHE = ""; // todo
-
-    // todo: Javadoc all methods.
+    private static final long ACCESS_TOKEN_EXPIRY = 50000;
 
     private Cache otpCache;
     private Cache authCodeCache;
@@ -50,7 +50,7 @@ public class LoginService {
         this.appService = appService;
     }
 
-    public String finishLogin(String password) throws LoginException, ServiceException {
+    public String finishLogin(String password) throws LoginException, UserException, NoSuchAppException {
 
         Cache.ValueWrapper wrapper = otpCache.get(password);
         String redirect;
@@ -67,22 +67,18 @@ public class LoginService {
             switch (app.getGrantType()) {
 
                 case IMPLICIT:
-                    String jwt = jwt(null, secret);
+                    String jwt = jwt(jwtClaims(user), secret);
                     redirect += "#access_token=" + jwt;
                     user.setLastLogin(LocalDateTime.now());
                     userService.save(user);
                     break;
 
                 case AUTH_CODE:
-                    String code = Generator.randomCode(6);
+                    String code = SecurityUtil.randomCode(6);
                     redirect += "?code=" + code;
                     authCodeCache.put(code, user);
                     break;
             }
-
-
-
-            // todo: set last login date, etc.
 
         } else {
             throw new LoginException("could not complete login. OTP not valid");
@@ -91,13 +87,13 @@ public class LoginService {
         return redirect;
     }
 
-    public boolean startLogin(User.UserId userId) throws ServiceException {
+    // todo: javadoc
+    public boolean startLogin(User.UserId userId) throws UserException {
         boolean exists = userService.exists(userId);
 
         if (exists) {
-
             User user = userService.read(userId);
-            String password = Generator.randomCode(5);
+            String password = SecurityUtil.randomCode(5);
             boolean sent = textSender.sendOneTimePassword(password, user.getMobile());
             otpCache.put(password, userId);
 
@@ -107,7 +103,8 @@ public class LoginService {
         return false;
     }
 
-    public AccessToken.Response getAccessToken(AccessToken.Request request) throws LoginException, ServiceException {
+    public AccessToken.Response getAccessToken(AccessToken.Request request) throws LoginException, UserException,
+            NoSuchAppException {
 
         String clientId = request.getClientId();
         String clientSecret = request.getClientSecret();
@@ -124,23 +121,28 @@ public class LoginService {
             throw new LoginException("Could not get access token. Client is not recognised");
         }
 
+        String accessToken = SecurityUtil.jwt(jwtClaims(user), clientSecret);
+        user.setLastLogin(LocalDateTime.now());
+        userService.save(user);
+
+        AccessToken.Response response = new AccessToken.Response();
+        response.setAcesstoken(accessToken);
+        response.setExpires(ACCESS_TOKEN_EXPIRY);
+        response.setScope("all");
+
+        return response;
+    }
+
+    // todo: finish and Javadoc.
+    private Map<String, String> jwtClaims(User user) {
+
         // todo: use user details to populate a claims map.
         Map<String, String> claims = new HashMap<>();
         claims.put("email", user.getId().getEmail());
         claims.put("", "");
         claims.put("", ""); // todo: issuer ??
 
-        String accessToken = Generator.jwt(claims, clientSecret);
-
-        user.setLastLogin(LocalDateTime.now());
-        userService.save(user);
-
-        AccessToken.Response response = new AccessToken.Response();
-        response.setAcesstoken(accessToken);
-        response.setExpires(500000); // todo: make this 35 days or just document this.
-        response.setScope("all");
-
-        return response;
+        return claims;
     }
 
     @PostConstruct

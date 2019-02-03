@@ -1,4 +1,4 @@
-package me.identityprovider.dashboard;
+package me.identityprovider.dashboard.security;
 
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;

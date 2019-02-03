@@ -25,7 +25,6 @@ public class User {
     @Column(name = "SIGN_UP_DATE")
     private LocalDate signupDate;
 
-
     /* Getters and Setters */
 
     public UserId getId() {
