@@ -3,7 +3,7 @@ package me.identityprovider.authserver.controller;
 import javax.validation.Valid;
 
 import me.identityprovider.authserver.dto.AccessToken;
-import me.identityprovider.authserver.exception.LoginException;
+import me.identityprovider.authserver.exception.LoginFailedException;
 import me.identityprovider.authserver.service.LoginService;
 import me.identityprovider.common.exception.NoSuchAppException;
 import me.identityprovider.common.model.User;
@@ -51,7 +51,8 @@ public class LoginController {
     // todo; Read Spring Boot docs on how to write Exception Handlers, custom page.
 
     @PostMapping("/authenticate")
-    public String authenticate(@RequestAttribute("otp") String password) throws NoSuchAppException, LoginException {
+    public String authenticate(@RequestAttribute("otp") String password) throws NoSuchAppException,
+            LoginFailedException {
 
         // todo: call service to check cache and sign JWT if Implicit app.
         String redirectUrl = service.finishLogin(password);
@@ -69,7 +70,7 @@ public class LoginController {
     @PostMapping("/accesstoken")
     @ResponseBody
     public AccessToken.Response accessToken(@Valid @RequestBody AccessToken.Request body) throws NoSuchAppException,
-            LoginException {
+            LoginFailedException {
         return service.getAccessToken(body);
     }
 

@@ -7,7 +7,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 
 import me.identityprovider.authserver.dto.AccessToken;
-import me.identityprovider.authserver.exception.LoginException;
+import me.identityprovider.authserver.exception.LoginFailedException;
 import me.identityprovider.common.exception.NoSuchAppException;
 import me.identityprovider.common.exception.UserException;
 import me.identityprovider.common.message.TextSender;
@@ -50,7 +50,7 @@ public class LoginService {
         this.appService = appService;
     }
 
-    public String finishLogin(String password) throws LoginException, UserException, NoSuchAppException {
+    public String finishLogin(String password) throws LoginFailedException, UserException, NoSuchAppException {
 
         Cache.ValueWrapper wrapper = otpCache.get(password);
         String redirect;
@@ -81,7 +81,7 @@ public class LoginService {
             }
 
         } else {
-            throw new LoginException("could not complete login. OTP not valid");
+            throw new LoginFailedException("could not complete login. OTP not valid");
         }
 
         return redirect;
@@ -103,7 +103,7 @@ public class LoginService {
         return false;
     }
 
-    public AccessToken.Response getAccessToken(AccessToken.Request request) throws LoginException, UserException,
+    public AccessToken.Response getAccessToken(AccessToken.Request request) throws LoginFailedException, UserException,
             NoSuchAppException {
 
         String clientId = request.getClientId();
@@ -111,14 +111,14 @@ public class LoginService {
         Cache.ValueWrapper wrapper = authCodeCache.get(request.getAuthorizationCode());
 
         if (wrapper == null) {
-            throw new LoginException("Could not obtain access token for this user");
+            throw new LoginFailedException("Could not obtain access token for this user");
         }
 
         User user = (User) wrapper.get();
         App app = appService.read(user.getId().getAppId());
 
         if (!app.getSecret().equals(clientSecret) || !app.getId().equals(clientId)) {
-            throw new LoginException("Could not get access token. Client is not recognised");
+            throw new LoginFailedException("Could not get access token. Client is not recognised");
         }
 
         String accessToken = SecurityUtil.jwt(jwtClaims(user), clientSecret);
