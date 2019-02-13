@@ -1,4 +1,4 @@
-package me.identityprovider.dashboard.security;
+package me.identityprovider.dashboard.model;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import javax.validation.constraints.NotEmpty;
 import me.identityprovider.common.model.App;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -22,19 +23,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class Developer implements UserDetails {
 
     @Id
+    @NotEmpty
     private String email;
+
+    @NotEmpty
     private String password;
-
-    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.ALL}, mappedBy = "developer")
-    private List<App> apps;
-
-    public List<App> getApps() {
-        return apps;
-    }
-
-    public void setApps(List<App> apps) {
-        this.apps = apps;
-    }
 
     public void setEmail(String email) {
         this.email = email;

@@ -4,12 +4,13 @@ import java.time.LocalDateTime;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 
 import me.identityprovider.authserver.dto.AccessToken;
-import me.identityprovider.authserver.exception.LoginFailedException;
+import me.identityprovider.authserver.exception.AuthenticationException;
 import me.identityprovider.common.exception.NoSuchAppException;
-import me.identityprovider.common.exception.UserException;
+import me.identityprovider.common.exception.NoSuchUserException;
 import me.identityprovider.common.message.TextSender;
 import me.identityprovider.common.model.App;
 import me.identityprovider.common.model.User;
@@ -29,7 +30,7 @@ import static me.identityprovider.common.utils.SecurityUtil.jwt;
 @Service
 public class LoginService {
 
-    private Logger logger = LoggerFactory.getLogger(LoginService.class);
+    private Logger logger = LoggerFactory.getLogger(LoginService.class); // todo: use Logger.
     private static final String OTP_CACHE = ""; // todo
     private static final String AUTH_CODE_CACHE = ""; // todo
     private static final long ACCESS_TOKEN_EXPIRY = 50000;
@@ -50,75 +51,88 @@ public class LoginService {
         this.appService = appService;
     }
 
-    public String finishLogin(String password) throws LoginFailedException, UserException, NoSuchAppException {
+    // todo: call this method in controller and show login page again with apt message if false.
+    public Optional<User.UserId> checkOtp(String otp) {
+        Cache.ValueWrapper wrapper = otpCache.get(otp);
 
-        Cache.ValueWrapper wrapper = otpCache.get(password);
-        String redirect;
+        if (wrapper == null) {
+            return Optional.empty();
+        }
 
-        if (wrapper != null) {
+        User.UserId id = (User.UserId) wrapper.get();
+        return Optional.of(id);
+    }
 
-            User.UserId userId = (User.UserId) wrapper.get();
-            App app = appService.read(userId.getAppId());
-            String secret = app.getSecret();
-            redirect = app.getLoginRedirect(); // return this.
+    // todo: javadoc
+    public String finishLogin(User.UserId userId) throws NoSuchUserException, NoSuchAppException {
 
-            User user = userService.read(userId);
+        App app = appService.read(userId.getAppId());
+        String secret = app.getSecret();
+        String redirect = app.getLoginRedirect();
 
-            switch (app.getGrantType()) {
+        User user = userService.read(userId);
 
-                case IMPLICIT:
-                    String jwt = jwt(jwtClaims(user), secret);
-                    redirect += "#access_token=" + jwt;
-                    user.setLastLogin(LocalDateTime.now());
-                    userService.save(user);
-                    break;
+        switch (app.getGrantType()) {
 
-                case AUTH_CODE:
-                    String code = SecurityUtil.randomCode(6);
-                    redirect += "?code=" + code;
-                    authCodeCache.put(code, user);
-                    break;
-            }
+            case IMPLICIT:
+                String jwt = jwt(jwtClaims(user), secret);
+                redirect += "#access_token=" + jwt;
+                user.setLastLogin(LocalDateTime.now());
+                userService.save(user);
+                break;
 
-        } else {
-            throw new LoginFailedException("could not complete login. OTP not valid");
+            case AUTH_CODE:
+                String code = SecurityUtil.randomCode(6);
+                redirect += "?code=" + code;
+                authCodeCache.put(code, user);
+                break;
         }
 
         return redirect;
     }
 
     // todo: javadoc
-    public boolean startLogin(User.UserId userId) throws UserException {
-        boolean exists = userService.exists(userId);
+    public boolean userExists(User.UserId id) {
+        return userService.exists(id);
+    }
 
-        if (exists) {
+    // todo: javadoc
+    public boolean startLogin(User.UserId userId) {
+
+        try {
+
             User user = userService.read(userId);
             String password = SecurityUtil.randomCode(5);
             boolean sent = textSender.sendOneTimePassword(password, user.getMobile());
-            otpCache.put(password, userId);
-
-            return sent;
+            if (sent) {
+                otpCache.put(password, userId);
+                return true;
+            } else {
+                return false;
+            }
+        } catch (NoSuchUserException e) {
+            logger.info("No user exists with given id: [{}]", userId);
+            return false;
         }
-
-        return false;
     }
 
-    public AccessToken.Response getAccessToken(AccessToken.Request request) throws LoginFailedException, UserException,
-            NoSuchAppException {
+    // todo: javadoc
+    public AccessToken.Response getAccessToken(AccessToken.Request request)
+            throws AuthenticationException, NoSuchAppException {
 
         String clientId = request.getClientId();
         String clientSecret = request.getClientSecret();
         Cache.ValueWrapper wrapper = authCodeCache.get(request.getAuthorizationCode());
 
         if (wrapper == null) {
-            throw new LoginFailedException("Could not obtain access token for this user");
+            throw new AuthenticationException("Could not find an authorization code for the user");
         }
 
         User user = (User) wrapper.get();
         App app = appService.read(user.getId().getAppId());
 
         if (!app.getSecret().equals(clientSecret) || !app.getId().equals(clientId)) {
-            throw new LoginFailedException("Could not get access token. Client is not recognised");
+            throw new AuthenticationException("Client credentials are invalid");
         }
 
         String accessToken = SecurityUtil.jwt(jwtClaims(user), clientSecret);
@@ -133,13 +147,14 @@ public class LoginService {
         return response;
     }
 
-    // todo: finish and Javadoc.
+    // todo: finish this
     private Map<String, String> jwtClaims(User user) {
 
+        // todo: check contents of a JWT, see AuthO docs
         // todo: use user details to populate a claims map.
         Map<String, String> claims = new HashMap<>();
         claims.put("email", user.getId().getEmail());
-        claims.put("", "");
+        claims.put("f", "");
         claims.put("", ""); // todo: issuer ??
 
         return claims;

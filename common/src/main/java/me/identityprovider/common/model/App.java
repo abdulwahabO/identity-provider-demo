@@ -5,7 +5,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import org.springframework.stereotype.Controller;
 
 @Entity
 @Table(name = "CLIENT_APP")
@@ -28,6 +27,9 @@ public class App {
 
     @Column(name = "DEVELOPER_ID")
     private String developerId;
+
+    @Column(name = "HOME_PAGE")
+    private String homePage;
 
     public String getId() {
         return id;
@@ -75,6 +77,14 @@ public class App {
 
     public void setLoginRedirect(String loginRedirect) {
         this.loginRedirect = loginRedirect;
+    }
+
+    public String getHomePage() {
+        return homePage;
+    }
+
+    public void setHomePage(String homePage) {
+        this.homePage = homePage;
     }
 
     public enum GrantType {

@@ -1,5 +1,6 @@
 package me.identityprovider.common.service;
 
+import java.util.List;
 import java.util.Optional;
 import me.identityprovider.common.exception.AppCreationException;
 import me.identityprovider.common.exception.NoSuchAppException;
@@ -13,16 +14,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class AppService {
 
-    private UserService userService;
     private AppRepository appRepository;
 
     @Autowired
-    public AppService(AppRepository appRepository, UserService userService) {
-        this.userService = userService;
+    public AppService(AppRepository appRepository) {
         this.appRepository = appRepository;
     }
 
-    public App save(App app) throws AppCreationException { // todo: javadoc
+    public App save(App app) throws AppCreationException {
 
         boolean redirectValid = isRedirectValid(app.getLoginRedirect());
 
@@ -45,6 +44,14 @@ public class AppService {
         return app.get();
     }
 
+    public Optional<List<App>> getAppsOf(String devId) {
+        return Optional.of(appRepository.findDevId(devId));
+    }
+
+    public void deleteAppsOf(String devId) {
+
+    }
+
     public void delete(String id) {
         appRepository.deleteById(id);
     }
@@ -55,6 +62,7 @@ public class AppService {
 
     private boolean isRedirectValid(String url) {
 
+        // todo: among other things, it must be a subdomain of the homepage ?? domain??
         return true;
     }
 
