@@ -1,13 +1,12 @@
 package me.identityprovider.common.model;
 
-import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "CLIENT_APP")
+@Table(name = "APPS")
 public class App {
 
     @Id
@@ -30,6 +29,9 @@ public class App {
 
     @Column(name = "HOME_PAGE")
     private String homePage;
+
+    @Column(name = "API_ID")
+    private String apiId;
 
     public String getId() {
         return id;
@@ -81,6 +83,14 @@ public class App {
 
     public String getHomePage() {
         return homePage;
+    }
+
+    public String getApiId() {
+        return apiId;
+    }
+
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
     }
 
     public void setHomePage(String homePage) {

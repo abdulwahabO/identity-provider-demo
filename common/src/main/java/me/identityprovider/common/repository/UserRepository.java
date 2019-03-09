@@ -9,11 +9,9 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface UserRepository extends CrudRepository<User, User.UserId> {
 
-    // todo: write at query
-    @Query(nativeQuery = true, name = "....todo...")
+    @Query(nativeQuery = true, value = "SELECT * FROM USERS WHERE APP_ID = ?1")
     List<User>findByAppId(String appId);
 
-    // todo: delete users where app Id = 
-    @Query()
+    @Query(nativeQuery = true, value = "DELETE FROM USERS WHERE APP_ID = ?1")
     void deleteAppUsers(String appId);
 }

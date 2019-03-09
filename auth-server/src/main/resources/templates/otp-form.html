@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Sign-up</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+</head>
+
+<body>
+
+    <div id="container-login">
+
+        <div id="title">
+            <i class="material-icons lock">lock</i> Login
+        </div>
+
+        <span th:if="${error}">
+            <p th:text="${errorMessage}">error</p>
+        </span>
+
+        <form method="POST" th:action="@{/login/authenticate}">
+
+            <div class="input">
+                <div class="input-addon">
+                    <i class="material-icons">face</i>
+                </div>
+
+                <input id="otp" name="otp" placeholder="enter the one-time password" type="text" required
+                       class="validate"
+                       autocomplete="off">
+            </div>
+
+            <div class="clearfix"></div>
+
+            <input type="submit" value="Login"/>
+        </form>
+    </div>
+
+</body>
+
+</html>

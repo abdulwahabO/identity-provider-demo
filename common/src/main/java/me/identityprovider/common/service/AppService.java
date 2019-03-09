@@ -21,10 +21,15 @@ public class AppService {
         this.appRepository = appRepository;
     }
 
+    /**
+     *
+     * @param app
+     * @return
+     * @throws AppCreationException
+     */
     public App save(App app) throws AppCreationException {
 
         boolean redirectValid = isRedirectValid(app.getLoginRedirect());
-
         if (!redirectValid) {
             throw new AppCreationException("The redirect url is invalid");
         }
@@ -35,7 +40,13 @@ public class AppService {
         return appRepository.save(app);
     }
 
-    // todo: javadoc
+    /**
+     * Find an app by its id.
+     *
+     * @param appId id of the app to find.
+     * @return an {@link App} whose id matches the id supplied.
+     * @throws NoSuchAppException if there is no app with the given id
+     */
     public App read(String appId) throws NoSuchAppException {
         Optional<App> app = appRepository.findById(appId);
         if (!app.isPresent()) {
@@ -45,24 +56,33 @@ public class AppService {
     }
 
     public Optional<List<App>> getAppsOf(String devId) {
-        return Optional.of(appRepository.findDevId(devId));
+        return Optional.of(appRepository.findByDevId(devId));
     }
 
+    /**
+     * Deletes all the apps of a developer with given id.
+     * @param devId id of the developer whose apps to delete.
+     */
     public void deleteAppsOf(String devId) {
-
+        appRepository.deleteByDevId(devId);
     }
 
+    /**
+     * Delete app with given id.
+     * @param id id of the app to delete.
+     */
     public void delete(String id) {
         appRepository.deleteById(id);
     }
 
+    /**
+     * @return true if an app exists with the given id.
+     */
     public boolean exists(String entityId) {
         return appRepository.existsById(entityId);
     }
 
     private boolean isRedirectValid(String url) {
-
-        // todo: among other things, it must be a subdomain of the homepage ?? domain??
         return true;
     }
 

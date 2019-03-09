@@ -3,6 +3,8 @@ package me.identityprovider.common.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
@@ -14,6 +16,7 @@ import javax.persistence.Table;
 public class User {
 
     @EmbeddedId
+    @AttributeOverrides({@AttributeOverride(name = "appId", column = @Column(name = "APP_ID"))})
     private UserId id;
 
     @Column(name = "PHONE_NUMBER")

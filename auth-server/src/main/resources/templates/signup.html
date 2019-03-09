@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<!--
+
+    -> Edit this this heavily.
+    -> it should only have one visible input and one hidden input for app Id.
+
+    todo: the field for number should have placeholder to show valid example of Nigeria number...
+    todo: check sms API for the valid format of 9ja number they will accept..
+
+-->
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/main.css" th:href="@{/css/main.css}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F2F2F2;
+        }
+
+    </style>
+</head>
+
+<body>
+<div id="container-register">
+    <div id="title">
+        <i class="material-icons lock">lock</i> Register
+    </div>
+
+    <span th:if="${error}">
+        <p th:text="${errorMessage}">error</p>
+    </span>
+
+    <form method="POST" th:action="@{/signup/start}" th:object="${userDto}">
+
+        <div class="input">
+            <div class="input-addon">
+                <i class="material-icons">person</i>
+            </div>
+            <input id="name" placeholder="Full Name" th:field="*{name}" type="number" required class="validate"
+                   autocomplete="off">
+        </div>
+
+        <div class="input">
+            <div class="input-addon">
+                <i class="material-icons">email</i>
+            </div>
+            <input id="email" placeholder="Email" th:field="*{email}" type="email" required class="validate"
+                   autocomplete="off">
+        </div>
+
+        <div class="clearfix"></div>
+
+        <input th:value="${app_id}" th:field="*{appId}" type="hidden"/>
+
+        <div class="input">
+            <div class="input-addon">
+                <i class="material-icons">phone_iphone</i>
+            </div>
+            <input id="phone" placeholder="phone number" th:field="*{phone}" type="number" required class="validate"
+                   autocomplete="off">
+        </div>
+
+        <input type="submit" value="Sign-up"/>
+    </form>
+
+
+</div>
+</body>
+
+</html>
+

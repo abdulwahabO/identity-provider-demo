@@ -12,12 +12,13 @@ import me.identityprovider.common.model.User;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,8 +29,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class LoginController {
 
     private Logger logger = LoggerFactory.getLogger(LoginController.class);
-    private static final String OTP_FORM = "";
-    private static final String LOGIN_FORM = "";
+
+    private static final String OTP_FORM = "otp-form";
+    private static final String LOGIN_FORM = "login-start-form";
     private static final String ERROR_KEY = "error";
     private static final String ERROR_MSG_KEY = "errorMessage";
 
@@ -38,14 +40,13 @@ public class LoginController {
 
     @GetMapping
     public String form(@RequestParam("client_id") String appId, Model model) {
-        model.addAttribute("appId", appId); // todo: put appId in hidden field.
+        model.addAttribute("appId", appId);
         return LOGIN_FORM;
     }
 
-    // todo: confirm from docs that requestAttribute annotation can bind to form param.
-    @PostMapping("/submit-email")
-    public String sendPassword(@RequestAttribute(name = "email") String email,
-            @RequestAttribute(name = "appId") String appId, Model model) {
+    @PostMapping("/email")
+    public String sendPassword(@RequestParam(name = "email") String email,
+            @RequestParam(name = "appId") String appId, Model model) {
 
         User.UserId id = new User.UserId(appId, email);
 
@@ -67,7 +68,7 @@ public class LoginController {
     }
 
     @PostMapping("/authenticate")
-    public String authenticate(@RequestAttribute("otp") String password, Model model)
+    public String authenticate(@RequestParam("otp") String password, Model model)
             throws NoSuchUserException, NoSuchAppException {
 
         Optional<User.UserId> id = service.checkOtp(password);
@@ -84,9 +85,9 @@ public class LoginController {
 
     @PostMapping("/accesstoken")
     @ResponseBody
+    @CrossOrigin
     public AccessToken.Response accessToken(@Valid @RequestBody AccessToken.Request body)
             throws NoSuchAppException, AuthenticationException {
-
         return service.getAccessToken(body);
     }
 }

@@ -1,17 +1,18 @@
 package me.identityprovider.common.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 
 import me.identityprovider.common.dto.UserDto;
 import me.identityprovider.common.exception.NoSuchUserException;
+import me.identityprovider.common.messenger.EmailSender;
 import me.identityprovider.common.model.User;
 import me.identityprovider.common.repository.UserRepository;
 import me.identityprovider.common.utils.SecurityUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
@@ -20,15 +21,21 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private static final String USER_REGISTRATION_CACHE = "user.registration";
+    private static final String EMAIL_URL_PATH = "/signup/finish?code=";
 
+    private EmailSender emailSender;
     private UserRepository userRepository;
     private CacheManager cacheManager;
     private Cache cache;
 
+    @Value("${authserver.baseUrl}")
+    private String baseUrl;
+
     @Autowired
-    public UserService(UserRepository repository, CacheManager cacheManager) {
+    public UserService(UserRepository repository, CacheManager cacheManager, EmailSender emailSender) {
         this.cacheManager = cacheManager;
         this.userRepository = repository;
+        this.emailSender = emailSender;
     }
 
     public void delete(User.UserId Id) {
@@ -43,6 +50,10 @@ public class UserService {
         return userRepository.save(entity);
     }
 
+    /**
+     * Finds and returns a user by id.
+     * @throws NoSuchUserException if there is no user with given id.
+     */
     public User read(User.UserId id) throws NoSuchUserException {
         Optional<User> user = userRepository.findById(id);
         if (!user.isPresent()) {
@@ -51,17 +62,28 @@ public class UserService {
         return user.get();
     }
 
-    // todo: returns users of a particular app, Javadoc
+    /**
+     * Returns all the users of a given app.
+     */
     public Optional<List<User>> getUsersOf(String appId) {
         List<User> users = userRepository.findByAppId(appId);
         return Optional.of(users);
     }
 
+    /**
+     * Delete all the users of a given app.
+     * @param appId the app id
+     */
     public void deleteUsersOf(String appId) {
         userRepository.deleteAppUsers(appId);
     }
 
-    public boolean startSignUp(UserDto dto) {
+    /**
+     * Starts off the process of creating a new user.
+     * @param dto the data for the new user
+     * @return true if a verification link has been sent to the user's email, false otherwise.
+     */
+    public boolean createUser(UserDto dto) {
 
         User user = new User();
         user.setId(new User.UserId(dto.getAppId(), dto.getEmail()));
@@ -69,16 +91,14 @@ public class UserService {
 
         String token = SecurityUtil.randomCode(6);
         cache.put(token, user);
+        String verifyUrl = baseUrl + EMAIL_URL_PATH + token;
 
-        // todo: write method to prepare email signup link.
-        // todo: send email to user with link like: https://localhost:8080/signup/finish?token=[token here]
-        // todo: email sender.
-        // todo: prepare magic link and send to email, which caching details using the code in link sent to emails.
-        // todo: emailSender should return boolean indicating that email was sent.
-
-        return true;
+        return emailSender.sendUserVerificationEmail(user, verifyUrl);
     }
 
+    /**
+     * Checks if signup token is valid and returns the user it's associated with.
+     */
     public Optional<User> checkToken(String token) {
         Cache.ValueWrapper wrapper = cache.get(token);
         if (wrapper == null) {
@@ -88,15 +108,8 @@ public class UserService {
         return Optional.of(user);
     }
 
-    // todo: Javadoc this
-    public User finishSignUp(User user) {
-        user.setSignupDate(LocalDate.now());
-        return save(user);
-    }
-
     @PostConstruct
-    private void init(){
+    public void init(){
         cache = cacheManager.getCache(USER_REGISTRATION_CACHE);
     }
-
 }

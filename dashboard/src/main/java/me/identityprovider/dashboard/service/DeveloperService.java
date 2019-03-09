@@ -3,9 +3,11 @@ package me.identityprovider.dashboard.service;
 import java.util.List;
 import java.util.Optional;
 
+import me.identityprovider.common.exception.NoSuchAppException;
 import me.identityprovider.common.model.App;
 import me.identityprovider.common.service.AppService;
 import me.identityprovider.common.service.UserService;
+import me.identityprovider.dashboard.exception.IllegalAppAccessException;
 import me.identityprovider.dashboard.exception.NoSuchDeveloperException;
 import me.identityprovider.dashboard.repository.DeveloperRepository;
 import me.identityprovider.dashboard.model.Developer;
@@ -38,10 +40,22 @@ public class DeveloperService implements UserDetailsService {
     public Developer read(String id) throws NoSuchDeveloperException {
         Optional<Developer> dev = developerRepository.findById(id);
         if (!dev.isPresent()) {
-           throw new NoSuchDeveloperException("No developer exists with given id");
+            throw new NoSuchDeveloperException("No developer exists with given id");
         }
 
         return dev.get();
+    }
+
+    // checks if the dev owns the app they are trying to access.
+    public boolean isAppOwner(String appId, String devId) {
+
+        try {
+            App app = appService.read(appId);
+            return app.getDeveloperId().equals(devId);
+        } catch (NoSuchAppException e) {
+            return false;
+        }
+
     }
 
     public boolean exists(String entityId) {

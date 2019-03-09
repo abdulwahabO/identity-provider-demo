@@ -1,12 +1,14 @@
 package me.identityprovider.authserver.controller;
 
+import java.time.LocalDate;
 import java.util.Optional;
+
 import me.identityprovider.common.dto.UserDto;
 import me.identityprovider.common.model.App;
 import me.identityprovider.common.model.User;
-
 import me.identityprovider.common.service.AppService;
 import me.identityprovider.common.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,10 +21,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/signup")
 public class SignUpController {
 
-    private static final String SIGN_UP_FORM = ""; // todo
-    private static final String SIGN_UP_SUCCESS_PAGE = ""; // todo
-    private static final String LINK_EXPIRED_PAGE = ""; // todo
-    private static final String EMAIL_SENT_PAGE = ""; // todo
+    private static final String SIGN_UP_FORM = "signup";
+    private static final String SIGN_UP_SUCCESS_PAGE = "signup-success";
+    private static final String LINK_EXPIRED_PAGE = "email-link-expired";
+    private static final String EMAIL_SENT_PAGE = "verify-email-sent";
+
+    private static final String ERROR_KEY = "error";
+    private static final String ERROR_MSG_KEY = "errorMessage";
 
     @Autowired
     private UserService userService;
@@ -31,10 +36,8 @@ public class SignUpController {
     private AppService appService;
 
     @GetMapping
-    public String signUp(@RequestParam("app_id") String client, Model model) {
-        UserDto user = new UserDto();
-        user.setAppId(client);
-        model.addAttribute("user", user);
+    public String signUp(@RequestParam("app_id") String appId, Model model) {
+        model.addAttribute("app_id", appId);
         return SIGN_UP_FORM;
     }
 
@@ -44,13 +47,15 @@ public class SignUpController {
         boolean userExists = userService.exists(new User.UserId(dto.getAppId(), dto.getEmail()));
 
         if (userExists) {
-            model.addAttribute("message", "This email is already in use");
+            model.addAttribute(ERROR_KEY, true);
+            model.addAttribute(ERROR_MSG_KEY, "This email is already in use");
             model.addAttribute("user", dto);
             return SIGN_UP_FORM;
         }
 
-        if (!userService.startSignUp(dto)) {
-            model.addAttribute("message", "Could not send sign-up link to your mail");
+        if (!userService.createUser(dto)) {
+            model.addAttribute(ERROR_KEY, true);
+            model.addAttribute(ERROR_MSG_KEY, "Could not send sign-up link to your mail");
             model.addAttribute("user", dto);
             return SIGN_UP_FORM;
         }
@@ -58,8 +63,7 @@ public class SignUpController {
         return EMAIL_SENT_PAGE;
     }
 
-    // todo: called when link in email is clicked.
-    @GetMapping("/verify-email")
+    @GetMapping("/finish")
     public String finish(@RequestParam("token") String token, Model model) throws Exception {
 
         Optional<User> optionalUser = userService.checkToken(token);
@@ -69,15 +73,11 @@ public class SignUpController {
         }
 
         User user = optionalUser.get();
-        userService.finishSignUp(user);
-
+        user.setSignupDate(LocalDate.now());
+        userService.save(user);
         App app = appService.read(user.getId().getAppId());
 
-        // todo: Success page should have a link that says "login to {app_name}", when user clicks send them to
-        // todo: the loginController using appId
-
-        model.addAttribute("appId", app.getId());
-        model.addAttribute("appName", app.getName());
+        model.addAttribute("app", app.getHomePage());
 
         return SIGN_UP_SUCCESS_PAGE;
     }

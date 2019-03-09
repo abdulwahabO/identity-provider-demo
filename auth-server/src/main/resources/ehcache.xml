@@ -25,6 +25,14 @@
             transactionalMode="off">
     </cache>
 
-
+    <cache name="auth_code"
+            maxElementsInMemory="50"
+            eternal="false"
+            timeToLive="3750"
+            timeToIdle="50"
+            overflowToDisk="false"
+            memoryStoreEvictionPolicy="FIFO"
+            transactionalMode="off">
+    </cache>
 
 </ehcache>

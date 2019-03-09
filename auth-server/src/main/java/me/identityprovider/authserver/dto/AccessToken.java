@@ -2,7 +2,8 @@ package me.identityprovider.authserver.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.validation.constraints.NotNull;
+
+import javax.validation.constraints.NotEmpty;
 
 public class AccessToken {
 
@@ -10,15 +11,15 @@ public class AccessToken {
     public static class Request {
 
         @JsonProperty(required = true, value = "client_id")
-        @NotNull
+        @NotEmpty
         private String clientId;
 
         @JsonProperty(required = true, value = "client_secret")
-        @NotNull
+        @NotEmpty
         private String clientSecret;
 
         @JsonProperty(required = true, value = "code")
-        @NotNull
+        @NotEmpty
         private String authorizationCode;
 
         public String getAuthorizationCode() {
@@ -55,7 +56,7 @@ public class AccessToken {
         private long expires;
 
         @JsonProperty(value = "access_token")
-        private String acesstoken;
+        private String acessToken;
 
         public String getScope() {
             return scope;
@@ -69,12 +70,12 @@ public class AccessToken {
             this.expires = expires;
         }
 
-        public String getAcesstoken() {
-            return acesstoken;
+        public String getAcessToken() {
+            return acessToken;
         }
 
-        public void setAcesstoken(String acesstoken) {
-            this.acesstoken = acesstoken;
+        public void setAcessToken(String acessToken) {
+            this.acessToken = acessToken;
         }
 
         public void setScope(String scope) {

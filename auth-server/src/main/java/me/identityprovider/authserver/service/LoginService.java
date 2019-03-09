@@ -1,9 +1,6 @@
 package me.identityprovider.authserver.service;
 
 import java.time.LocalDateTime;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 
@@ -11,7 +8,7 @@ import me.identityprovider.authserver.dto.AccessToken;
 import me.identityprovider.authserver.exception.AuthenticationException;
 import me.identityprovider.common.exception.NoSuchAppException;
 import me.identityprovider.common.exception.NoSuchUserException;
-import me.identityprovider.common.message.TextSender;
+import me.identityprovider.common.messenger.TextSender;
 import me.identityprovider.common.model.App;
 import me.identityprovider.common.model.User;
 import me.identityprovider.common.service.AppService;
@@ -30,9 +27,9 @@ import static me.identityprovider.common.utils.SecurityUtil.jwt;
 @Service
 public class LoginService {
 
-    private Logger logger = LoggerFactory.getLogger(LoginService.class); // todo: use Logger.
-    private static final String OTP_CACHE = ""; // todo
-    private static final String AUTH_CODE_CACHE = ""; // todo
+    private Logger logger = LoggerFactory.getLogger(LoginService.class);
+    private static final String OTP_CACHE = "otp";
+    private static final String AUTH_CODE_CACHE = "auth_code";
     private static final long ACCESS_TOKEN_EXPIRY = 50000;
 
     private Cache otpCache;
@@ -51,7 +48,11 @@ public class LoginService {
         this.appService = appService;
     }
 
-    // todo: call this method in controller and show login page again with apt message if false.
+    /**
+     * Returns a {@link User.UserId} if the given OTP is valid.
+     *
+     * @param otp the one-time password
+     */
     public Optional<User.UserId> checkOtp(String otp) {
         Cache.ValueWrapper wrapper = otpCache.get(otp);
 
@@ -63,7 +64,14 @@ public class LoginService {
         return Optional.of(id);
     }
 
-    // todo: javadoc
+    /**
+     * Returns an access token or an authorization code depending on the type of OAuth2 flow the app uses.
+     *
+     * @param userId
+     * @return A URL to which the user should be redirected.
+     * @throws NoSuchUserException if no user is found with the given id.
+     * @throws NoSuchAppException if no app is associated with the user id.
+     */
     public String finishLogin(User.UserId userId) throws NoSuchUserException, NoSuchAppException {
 
         App app = appService.read(userId.getAppId());
@@ -75,8 +83,8 @@ public class LoginService {
         switch (app.getGrantType()) {
 
             case IMPLICIT:
-                String jwt = jwt(jwtClaims(user), secret);
-                redirect += "#access_token=" + jwt;
+                Optional<String> jwt = jwt(jwtClaims(user, app), secret);
+                redirect += "#access_token=" + jwt.orElse("");
                 user.setLastLogin(LocalDateTime.now());
                 userService.save(user);
                 break;
@@ -91,12 +99,22 @@ public class LoginService {
         return redirect;
     }
 
-    // todo: javadoc
+    /**
+     * Checks a user id for validity.
+     *
+     * @param id the Id to check for
+     * @return true if a user with the given is exists.
+     */
     public boolean userExists(User.UserId id) {
         return userService.exists(id);
     }
 
-    // todo: javadoc
+    /**
+     * Starts the process of authenticating a user by sending a one-time password to their mobile.
+     *
+     * @param userId the id of the user to start auth flow for.
+     * @return true if an sms has been sent to the user's mobile. false otherwise.
+     */
     public boolean startLogin(User.UserId userId) {
 
         try {
@@ -116,7 +134,14 @@ public class LoginService {
         }
     }
 
-    // todo: javadoc
+    /**
+     * Returns a JWT token which is used as access token for the client's API.
+     *
+     * @param request an {@link AccessToken.Request} which contains client credentials and auth code for a user.
+     * @return an JWT token.
+     * @throws AuthenticationException if the authorization code in the request is invalid.
+     * @throws NoSuchAppException if no app exists with the client credentials provided.
+     */
     public AccessToken.Response getAccessToken(AccessToken.Request request)
             throws AuthenticationException, NoSuchAppException {
 
@@ -125,7 +150,7 @@ public class LoginService {
         Cache.ValueWrapper wrapper = authCodeCache.get(request.getAuthorizationCode());
 
         if (wrapper == null) {
-            throw new AuthenticationException("Could not find an authorization code for the user");
+            throw new AuthenticationException("Could verify authorization code");
         }
 
         User user = (User) wrapper.get();
@@ -135,28 +160,26 @@ public class LoginService {
             throw new AuthenticationException("Client credentials are invalid");
         }
 
-        String accessToken = SecurityUtil.jwt(jwtClaims(user), clientSecret);
+        Optional<String> accessToken = SecurityUtil.jwt(jwtClaims(user, app), clientSecret);
+
+        if (!accessToken.isPresent()) {
+            throw new AuthenticationException("Could not create and sign a JWT for user");
+        }
+
         user.setLastLogin(LocalDateTime.now());
         userService.save(user);
 
         AccessToken.Response response = new AccessToken.Response();
-        response.setAcesstoken(accessToken);
+        response.setAcessToken(accessToken.get());
         response.setExpires(ACCESS_TOKEN_EXPIRY);
-        response.setScope("all");
 
         return response;
     }
 
-    // todo: finish this
-    private Map<String, String> jwtClaims(User user) {
-
-        // todo: check contents of a JWT, see AuthO docs
-        // todo: use user details to populate a claims map.
-        Map<String, String> claims = new HashMap<>();
-        claims.put("email", user.getId().getEmail());
-        claims.put("f", "");
-        claims.put("", ""); // todo: issuer ??
-
+    private SecurityUtil.JwtClaims jwtClaims(User user, App app) {
+        SecurityUtil.JwtClaims claims = new SecurityUtil.JwtClaims();
+        claims.setAudience(app.getApiId());
+        claims.setSubject(user.getId().getEmail());
         return claims;
     }
 
