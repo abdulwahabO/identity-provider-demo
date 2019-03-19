@@ -24,17 +24,19 @@
         <p th:text="${errorMessage}">error</p>
     </span>
 
+    We'll send a one-time password to the phone number associated with the email.
+
     <form method="POST" th:action="@{/login/email}">
         <div class="input">
             <div class="input-addon">
                 <i class="material-icons">face</i>
             </div>
-            <input id="username" placeholder="your email" type="text" required class="validate" autocomplete="off">
+            <input name="email" placeholder="your email" type="text" required class="validate" autocomplete="off">
         </div>
 
         <div class="clearfix"></div>
 
-        <input type="hidden" th:value="${appId}"/>
+        <input name="appId" type="hidden" th:value="${appId}"/>
         <input type="submit" value="Send OTP"/>
     </form>
 

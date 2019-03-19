@@ -1,5 +1,6 @@
 package me.identityprovider.model;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -64,7 +65,7 @@ public class User {
     }
 
     @Embeddable
-    public static class UserId {
+    public static class UserId implements Serializable {
 
         private String email;
         private String appId;

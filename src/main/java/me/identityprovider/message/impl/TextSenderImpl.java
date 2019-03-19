@@ -20,7 +20,7 @@ public class TextSenderImpl implements TextSender {
 
     private Logger logger = LoggerFactory.getLogger(TextSender.class);
 
-    private static final String HOST = "https://www.bulksmsnigeria.com";
+    private static final String HOST = "www.bulksmsnigeria.com";
     private static final String API_ENDPOINT = "/api/v1/sms/create";
     private static final String SENDER_ID = "Login";
 

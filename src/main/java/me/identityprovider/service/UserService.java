@@ -28,7 +28,7 @@ public class UserService {
     private CacheManager cacheManager;
     private Cache cache;
 
-    @Value("${authserver.baseUrl}")
+    @Value("${baseUrl}")
     private String baseUrl;
 
     @Autowired

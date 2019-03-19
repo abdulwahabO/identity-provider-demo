@@ -2,6 +2,8 @@ package me.identityprovider.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -20,6 +22,7 @@ public class App {
     private String name;
 
     @Column(name = "GRANT_TYPE", nullable = false)
+    @Enumerated(EnumType.STRING)
     private GrantType grantType;
 
     @Column(name = "LOGIN_REDIRECT_URL")

@@ -20,8 +20,15 @@ public class SecurityUtil {
      * @return a random code.
      */
     public static String randomCode(int length) {
+
         Random random = new Random();
-        return String.valueOf(random.nextInt(length));
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            builder.append(random.nextInt(length));
+        }
+        
+        return builder.toString();
     }
 
     /**
