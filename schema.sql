@@ -1,0 +1,28 @@
+
+CREATE TABLE IF NOT EXISTS APPS (
+    ID varchar(255),
+    SECRET varchar(255) NOT NULL,
+    APP_NAME varchar(255) NOT NULL,
+    GRANT_TYPE ENUM ('IMPLICIT', 'AUTH_CODE'),
+    LOGIN_REDIRECT_URL varchar(255),
+    DEVELOPER_ID varchar(255),
+    HOME_PAGE varchar(255),
+    API_ID varchar(255),
+    PRIMARY KEY(ID)
+);
+
+CREATE TABLE IF NOT EXISTS USERS (
+    APP_ID varchar(255),
+    EMAIL varchar(255),
+    PHONE_NUMBER varchar(255),
+    LAST_LOGIN_DATE TIMESTAMP,
+    SIGN_UP_DATE DATE,
+    PRIMARY KEY(APP_ID, EMAIL)
+);
+
+CREATE TABLE IF NOT EXISTS DEVELOPERS (
+    EMAIL varchar(255),
+    PASSWORD varchar(255) NOT NULL,
+    NAME varchar(255) NOT NULL,
+    PRIMARY KEY(EMAIL)
+);
