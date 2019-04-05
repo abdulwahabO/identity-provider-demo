@@ -56,18 +56,6 @@ public class AppService {
         return app.get();
     }
 
-    public Optional<List<App>> getAppsOf(String devId) {
-        return Optional.of(appRepository.findByDevId(devId));
-    }
-
-    /**
-     * Deletes all the apps of a developer with given id.
-     * @param devId id of the developer whose apps to delete.
-     */
-    public void deleteAppsOf(String devId) {
-        appRepository.deleteByDevId(devId);
-    }
-
     /**
      * Delete app with given id.
      * @param id id of the app to delete.

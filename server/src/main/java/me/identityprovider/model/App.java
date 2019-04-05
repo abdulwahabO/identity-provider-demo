@@ -28,9 +28,6 @@ public class App {
     @Column(name = "LOGIN_REDIRECT_URL")
     private String loginRedirect;
 
-    @Column(name = "DEVELOPER_ID")
-    private String developerId;
-
     @Column(name = "HOME_PAGE")
     private String homePage;
 
@@ -60,15 +57,7 @@ public class App {
     public void setName(String name) {
         this.name = name;
     }
-
-    public String getDeveloperId() {
-        return developerId;
-    }
-
-    public void setDeveloperId(String developerId) {
-        this.developerId = developerId;
-    }
-
+    
     public GrantType getGrantType() {
         return grantType;
     }

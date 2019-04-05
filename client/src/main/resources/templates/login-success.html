@@ -1,0 +1,17 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Sign-up</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    </head>
+
+    <body>
+
+    <div>
+        <h1> You are now logged in. </h1>
+        Expires: <span th:text="${expires}">expires</span>
+        Access Token: <span th:text="${token}">token</span>
+    </div>
+
+    </body>
+</html>
