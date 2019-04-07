@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -82,12 +81,12 @@ public class LoginController {
         String appRedirect = service.finishLogin(id.get());
         return "redirect:" + appRedirect;
     }
-
+    
     @PostMapping("/accesstoken")
     @ResponseBody
-    @CrossOrigin
     public AccessToken.Response accessToken(@Valid @RequestBody AccessToken.Request body)
-            throws NoSuchAppException, AuthenticationException {
+        throws NoSuchAppException, AuthenticationException {
         return service.getAccessToken(body);
     }
+
 }

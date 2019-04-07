@@ -1,16 +1,19 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
-        <title>Sign-up</title>
+        <title>Success</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     </head>
 
     <body>
 
     <div>
-        <h1> You are now logged in. </h1>
-        Expires: <span th:text="${expires}">expires</span>
-        Access Token: <span th:text="${token}">token</span>
+
+        <h1> Success! Login Complete. OAuth2 server returned a JWT access token </h1>
+        <h3>Access Token expires at: <span style="color:green" th:text="${expires}">expires</span> </h3>
+        <h3> The JWT Access Token: </h3>
+        <span th:text="${token}" style="color:red; font-family: Verdana, Geneva, Tahoma, sans-serif">token</span>
+        
     </div>
 
     </body>
