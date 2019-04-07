@@ -75,6 +75,9 @@ public class User {
             this.email = email;
         }
 
+        public UserId(){
+        }
+
         public String getAppId() {
             return appId;
         }

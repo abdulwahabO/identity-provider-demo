@@ -1,17 +1,23 @@
 package me.oauth2providerdemo.client.controller;
 
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestTemplate;
+
+import feign.Feign;
+import feign.jackson.JacksonDecoder;
+import feign.okhttp.OkHttpClient;
 
 import me.oauth2providerdemo.client.dto.AccessToken;
+import me.oauth2providerdemo.client.http.OAuthServerClient;
 
 @Controller
 public class ClientController {
@@ -27,23 +33,28 @@ public class ClientController {
 
     @GetMapping(value = "/login")
     public String redirectToOauthServer() {
-        authServerUrl += "/login?client_id=" + clientId;
-        return "redirect:" + authServerUrl;
+        String redirectURL = authServerUrl + "/login?client_id=" + clientId;
+        return "redirect:" + redirectURL;
     }
 
     @GetMapping("/callback")
     public String callback(@RequestParam String code, Model model) {
 
         AccessToken.Request body = new AccessToken.Request(code, clientId, clientSecret);
-        HttpEntity<AccessToken.Request> httpEntity = new HttpEntity<>(body);
-        RestTemplate template = new RestTemplate();
-
-        authServerUrl += "/accesstoken";
-        AccessToken.Response entity = 
-                template.postForObject(authServerUrl, httpEntity, AccessToken.Response.class);
+        OAuthServerClient client = Feign.builder()
+                                        .client(new OkHttpClient())
+                                        .decoder(new JacksonDecoder())
+                                        .target(OAuthServerClient.class, authServerUrl);
+                                                                                  
+        AccessToken.Response response = 
+        client.accessToken(body.getClientId(), body.getClientSecret(), body.getAuthorizationCode());       
                             
-        model.addAttribute("token", entity.getAcessToken());
-        model.addAttribute("expires", Instant.ofEpochMilli(entity.getExpires()).toString());
+        model.addAttribute("token", response.getAcessToken());
+
+        ZonedDateTime tokenExpiry = 
+                ZonedDateTime.ofInstant(Instant.now().plusSeconds(response.getExpires()), ZoneId.systemDefault());
+                    
+        model.addAttribute("expires", tokenExpiry.format(DateTimeFormatter.RFC_1123_DATE_TIME));
 
         return "login-success";
     }
@@ -52,5 +63,4 @@ public class ClientController {
     public String home(Model model) {
         return "home";
     }
-
 }

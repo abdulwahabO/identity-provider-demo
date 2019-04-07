@@ -3,15 +3,23 @@
     <head>
         <title>Sign-up</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <link rel="stylesheet" type="text/css" th:href="@{/css/main.css}">
     </head>
 
     <body>
 
-    <div>
-        <h3>
-            You need to <a th:href="@{/login}">Login</a> 
-        </h3>
+    <div id="container-home" style="height:950px;width: 950px; margin: 0 auto; margin-top: 15%;">    
+
+        <h1> Home Page of App (client) </h1>
+
+        <h3> Will Redirect to OAuth Server for Login </h3>
+
+        <div class="form-2">
+            <a th:href="@{/login}" class="log-twitter">Login</a>    
+        </div>
+
     </div>
+
 
     </body>
 </html>

@@ -28,7 +28,7 @@ public class LoginService {
     private Logger logger = LoggerFactory.getLogger(LoginService.class);
     private static final String OTP_CACHE = "otp";
     private static final String AUTH_CODE_CACHE = "auth_code";
-    private static final long ACCESS_TOKEN_EXPIRY = 50000;
+    private static final long ACCESS_TOKEN_EXPIRY = 5000000;
 
     private Cache otpCache;
     private Cache authCodeCache;
