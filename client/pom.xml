@@ -8,7 +8,7 @@
 		<version>2.1.3.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>me.oauth2providerdemo</groupId>
+	<groupId>demo.oauth2passwordless</groupId>
 	<artifactId>client</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>client</name>
