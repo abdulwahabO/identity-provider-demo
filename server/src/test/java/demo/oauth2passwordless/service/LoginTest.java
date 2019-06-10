@@ -14,7 +14,12 @@ import org.springframework.cache.CacheManager;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
 
 public class LoginTest {
 
@@ -28,12 +33,14 @@ public class LoginTest {
     private Cache cache = mock(Cache.class);
     private Cache.ValueWrapper cacheValueWrapper = mock(Cache.ValueWrapper.class);
    
-    private User frontAppUser;
-    private User serverAppUser;
-
+    // dummy apps using the implicit flow grant and authorization code grant
     App frontendApp;
     App serverApp;
 
+    // a dummy user for each app
+    private User frontAppUser;
+    private User serverAppUser;
+    
     @Before
     public void setup() {
 
@@ -83,11 +90,9 @@ public class LoginTest {
         when(cacheManager.getCache(anyString())).thenReturn(cache);
 
         when(cache.get(tokenRequest.getAuthorizationCode())).thenReturn(cacheValueWrapper);
-
         when(cacheValueWrapper.get()).thenReturn(serverAppUser);
 
         when(userService.save(serverAppUser)).thenReturn(serverAppUser);
-
         when(appService.read(serverApp.getId())).thenReturn(serverApp);
 
         LoginService service = new LoginService(userService, cacheManager, textService, appService);
