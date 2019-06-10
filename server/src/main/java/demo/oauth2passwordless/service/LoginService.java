@@ -122,7 +122,7 @@ public class LoginService {
     /**
      * Starts the process of authenticating a user by sending a one-time password to their mobile.
      *
-     * @param userId the id of the user to start auth flow for.
+     * @param userId the id of the user to be authenticated.
      * @return true if an sms has been sent to the user's mobile. false otherwise.
      */
     public boolean startLogin(User.UserId userId) {
@@ -146,10 +146,12 @@ public class LoginService {
     }
 
     /**
-     * Returns a JWT token which is used as access token for the client's API.
+     * Returns a JWT token which is used as access token for the client's resource API.
      *
      * @param request an {@link AccessToken.Request} which contains client credentials and auth code for a user.
+     * 
      * @return an JWT token.
+     * 
      * @throws AuthenticationException if the authorization code in the request is invalid.
      * @throws NoSuchAppException if no app exists with the client credentials provided.
      */

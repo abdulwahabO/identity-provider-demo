@@ -7,7 +7,6 @@ import demo.oauth2passwordless.dto.AccessToken;
 import demo.oauth2passwordless.exception.AuthenticationException;
 import demo.oauth2passwordless.service.LoginService;
 import demo.oauth2passwordless.exception.NoSuchAppException;
-import demo.oauth2passwordless.exception.NoSuchUserException;
 import demo.oauth2passwordless.model.User;
 
 import org.slf4j.Logger;
@@ -68,7 +67,7 @@ public class LoginController {
 
     @PostMapping("/authenticate")
     public String authenticate(@RequestParam("otp") String password, Model model)
-            throws NoSuchUserException, NoSuchAppException {
+            throws AuthenticationException {
 
         Optional<User.UserId> id = service.checkOtp(password);
 

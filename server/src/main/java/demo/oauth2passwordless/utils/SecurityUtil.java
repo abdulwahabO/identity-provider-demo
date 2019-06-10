@@ -6,7 +6,6 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.Optional;
 import java.util.Random;
 
 public class SecurityUtil {

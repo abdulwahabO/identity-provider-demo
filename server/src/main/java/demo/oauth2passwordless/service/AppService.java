@@ -11,7 +11,6 @@ import demo.oauth2passwordless.model.App;
 import demo.oauth2passwordless.repository.AppRepository;
 import demo.oauth2passwordless.utils.SecurityUtil;
 
-
 @Service
 public class AppService {
 
@@ -22,13 +21,6 @@ public class AppService {
         this.appRepository = appRepository;
     }
 
-    /**
-     * Create or update an {@link App}.
-     *
-     * @param app
-     * @return
-     * @throws AppCreationException
-     */
     public App save(App app) throws AppCreationException {
 
         boolean redirectValid = isRedirectValid(app.getLoginRedirect());
@@ -42,13 +34,6 @@ public class AppService {
         return appRepository.save(app);
     }
 
-    /**
-     * Find an app by its id.
-     *
-     * @param appId id of the app to find.
-     * @return an {@link App} whose id matches the id supplied.
-     * @throws NoSuchAppException if there is no app with the given id
-     */
     public App read(String appId) throws NoSuchAppException {
         Optional<App> app = appRepository.findById(appId);
         if (!app.isPresent()) {
@@ -57,17 +42,10 @@ public class AppService {
         return app.get();
     }
 
-    /**
-     * Delete app with given id.
-     * @param id id of the app to delete.
-     */
     public void delete(String id) {
         appRepository.deleteById(id);
     }
 
-    /**
-     * @return true if an app exists with the given id.
-     */
     public boolean exists(String entityId) {
         return appRepository.existsById(entityId);
     }
