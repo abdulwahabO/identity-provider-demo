@@ -2,7 +2,8 @@ package demo.oauth2passwordless.service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import javax.annotation.PostConstruct;
+
+import com.auth0.jwt.exceptions.JWTCreationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,6 @@ import demo.oauth2passwordless.model.App;
 
 import static demo.oauth2passwordless.utils.SecurityUtil.jwt;
 
-
 @Service
 public class LoginService {
 
@@ -31,9 +31,10 @@ public class LoginService {
     private static final String OTP_CACHE = "otp";
     private static final String AUTH_CODE_CACHE = "auth_code";
     private static final long ACCESS_TOKEN_EXPIRY = 5000000;
-
+    
     private Cache otpCache;
     private Cache authCodeCache;
+
     private CacheManager cacheManager;
     private TextMessageService textService;
     private UserService userService;
@@ -54,6 +55,7 @@ public class LoginService {
      * @param otp the one-time password
      */
     public Optional<User.UserId> checkOtp(String otp) {
+        otpCache = cacheManager.getCache(OTP_CACHE);
         Cache.ValueWrapper wrapper = otpCache.get(otp);
 
         if (wrapper == null) {
@@ -72,31 +74,39 @@ public class LoginService {
      * @throws NoSuchUserException if no user is found with the given id.
      * @throws NoSuchAppException if no app is associated with the user id.
      */
-    public String finishLogin(User.UserId userId) throws NoSuchUserException, NoSuchAppException {
+    public String finishLogin(User.UserId userId) throws AuthenticationException {
 
-        App app = appService.read(userId.getAppId());
-        String secret = app.getSecret();
-        String redirect = app.getLoginRedirect();
+        try {
 
-        User user = userService.read(userId);
+            App app = appService.read(userId.getAppId());
+            String secret = app.getSecret();
+            String redirect = app.getLoginRedirect();
+    
+            User user = userService.read(userId);
 
-        switch (app.getGrantType()) {
+            switch (app.getGrantType()) {
 
-            case IMPLICIT:
-                Optional<String> jwt = jwt(jwtClaims(user, app), secret);
-                redirect += "#access_token=" + jwt.orElse("");
-                user.setLastLogin(LocalDateTime.now());
-                userService.save(user);
+                case IMPLICIT:
+                    redirect += "#access_token=" + jwt(jwtClaims(user, app), secret);
+                    user.setLastLogin(LocalDateTime.now());
+                    userService.save(user);
                 break;
 
-            case AUTH_CODE:
-                String code = SecurityUtil.randomCode(6);
-                redirect += "?code=" + code;
-                authCodeCache.put(code, user);
+                case AUTH_CODE:
+                    authCodeCache = cacheManager.getCache(AUTH_CODE_CACHE);
+                    String code = SecurityUtil.randomCode(6);
+                    redirect += "?code=" + code;
+                    authCodeCache.put(code, user);
                 break;
+            }
+            
+            
+        return redirect;
+
+        } catch (Exception e) {
+           throw new AuthenticationException(e.getMessage());
         }
 
-        return redirect;
     }
 
     /**
@@ -118,11 +128,12 @@ public class LoginService {
     public boolean startLogin(User.UserId userId) {
 
         try {
-
             User user = userService.read(userId);
             String password = SecurityUtil.randomCode(5);
             boolean sent = textService.sendOneTimePassword(password, user.getMobile());
+
             if (sent) {
+                otpCache = cacheManager.getCache(OTP_CACHE);
                 otpCache.put(password, userId);
                 return true;
             } else {
@@ -143,10 +154,12 @@ public class LoginService {
      * @throws NoSuchAppException if no app exists with the client credentials provided.
      */
     public AccessToken.Response getAccessToken(AccessToken.Request request)
-            throws AuthenticationException, NoSuchAppException {
+        throws AuthenticationException, NoSuchAppException {
 
         String clientId = request.getClientId();
         String clientSecret = request.getClientSecret();
+        
+        authCodeCache = cacheManager.getCache(AUTH_CODE_CACHE);
         Cache.ValueWrapper wrapper = authCodeCache.get(request.getAuthorizationCode());
 
         if (wrapper == null) {
@@ -160,17 +173,19 @@ public class LoginService {
             throw new AuthenticationException("Client credentials are invalid");
         }
 
-        Optional<String> accessToken = SecurityUtil.jwt(jwtClaims(user, app), clientSecret);
+        String accessToken;
 
-        if (!accessToken.isPresent()) {
-            throw new AuthenticationException("Could not create and sign a JWT for user");
+        try {
+            accessToken = SecurityUtil.jwt(jwtClaims(user, app), clientSecret);
+        } catch (JWTCreationException e) {
+            throw new AuthenticationException("could not create access token");
         }
 
         user.setLastLogin(LocalDateTime.now());
         userService.save(user);
 
         AccessToken.Response response = new AccessToken.Response();
-        response.setAcessToken(accessToken.get());
+        response.setAcessToken(accessToken);
         response.setExpires(ACCESS_TOKEN_EXPIRY);
 
         return response;
@@ -183,9 +198,4 @@ public class LoginService {
         return claims;
     }
 
-    @PostConstruct
-    public void init() {
-        otpCache = cacheManager.getCache(OTP_CACHE);
-        authCodeCache = cacheManager.getCache(AUTH_CODE_CACHE);
-    }
 }

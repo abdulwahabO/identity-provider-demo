@@ -89,6 +89,7 @@ public class UserService {
         user.setMobile(dto.getPhone());
 
         String token = SecurityUtil.randomCode(6);
+        cache = cacheManager.getCache(USER_REGISTRATION_CACHE);
         cache.put(token, user);
         String verifyUrl = baseUrl + EMAIL_URL_PATH + token;
 
@@ -99,16 +100,12 @@ public class UserService {
      * Checks if sign-up token is valid and returns the user it's associated with.
      */
     public Optional<User> checkToken(String token) {
+        cache = cacheManager.getCache(USER_REGISTRATION_CACHE);
         Cache.ValueWrapper wrapper = cache.get(token);
         if (wrapper == null) {
             Optional.empty();
         }
         User user = (User) wrapper.get();
         return Optional.of(user);
-    }
-
-    @PostConstruct
-    public void init(){
-        cache = cacheManager.getCache(USER_REGISTRATION_CACHE);
     }
 }
