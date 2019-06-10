@@ -6,12 +6,11 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.Optional;
 import java.util.Random;
 
 public class SecurityUtil {
 
-    private static final String JWT_ISSUER = "auth-server";
+    public static final String JWT_ISSUER = "auth-server";
 
     /**
      * Returns a random String of numeric characters.
@@ -32,7 +31,7 @@ public class SecurityUtil {
     }
 
     /**
-     * Returns a 32 characters long string that is used as id for apps.
+     * Returns a 256-bit string that is used as id for apps.
      *
      * @return The app id
      */
@@ -41,7 +40,7 @@ public class SecurityUtil {
     }
 
     /**
-     * Returns a 32 characters long string that is used as secret key for apps.
+     * Returns a 256-bit string that is used as secret key for apps.
      *
      * @return The secret
      */
@@ -83,20 +82,19 @@ public class SecurityUtil {
      * @param signingSecret - the app secret
      * @return an Optional which if not empty would contain a signed JWT.
      */
-    public static Optional<String> jwt(JwtClaims claims, String signingSecret) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(signingSecret);
-            String token = JWT.create()
-                              .withIssuedAt(new Date())
-                              .withIssuer(JWT_ISSUER)
-                              .withAudience(claims.getAudience())
-                              .withSubject(claims.getSubject())
-                              .withExpiresAt(Date.from(Instant.now().plusSeconds(350000)))
-                              .sign(algorithm);
-            return Optional.of(token);
-        } catch (JWTCreationException e) {
-            return Optional.empty();
-        }
+    public static String jwt(JwtClaims claims, String signingSecret) throws JWTCreationException {
+    
+        Algorithm algorithm = Algorithm.HMAC256(signingSecret);
+        String token = JWT.create()
+                          .withIssuedAt(new Date())
+                          .withIssuer(JWT_ISSUER)
+                          .withAudience(claims.getAudience())
+                          .withSubject(claims.getSubject())
+                          .withExpiresAt(Date.from(Instant.now().plusSeconds(350000)))
+                          .sign(algorithm);
+   
+                          
+        return token;                    
     }
 
     /**

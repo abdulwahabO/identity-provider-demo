@@ -2,7 +2,6 @@ package demo.oauth2passwordless.service;
 
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,7 +49,12 @@ public class UserService {
     }
 
     /**
-     * Finds and returns a user by id.
+     * Finds and returns a user using the given id.
+     * 
+     * @param id a user id.
+     * 
+     * @return A {@link User}.
+     *  
      * @throws NoSuchUserException if there is no user with given id.
      */
     public User read(User.UserId id) throws NoSuchUserException {
@@ -63,6 +67,8 @@ public class UserService {
 
     /**
      * Returns all the users of a given app.
+     * 
+     * @param appId the client Id of app.
      */
     public Optional<List<User>> getUsersOf(String appId) {
         List<User> users = userRepository.findByAppId(appId);
@@ -71,6 +77,7 @@ public class UserService {
 
     /**
      * Delete all the users of a given app.
+     * 
      * @param appId the app id
      */
     public void deleteUsersOf(String appId) {
@@ -78,7 +85,8 @@ public class UserService {
     }
 
     /**
-     * Starts off the process of creating a new user.
+     * Creates a new {@link User} and caches it.
+     * 
      * @param dto the data for the new user
      * @return true if a verification link has been sent to the user's email, false otherwise.
      */
@@ -89,6 +97,7 @@ public class UserService {
         user.setMobile(dto.getPhone());
 
         String token = SecurityUtil.randomCode(6);
+        cache = cacheManager.getCache(USER_REGISTRATION_CACHE);
         cache.put(token, user);
         String verifyUrl = baseUrl + EMAIL_URL_PATH + token;
 
@@ -96,19 +105,17 @@ public class UserService {
     }
 
     /**
-     * Checks if sign-up token is valid and returns the user it's associated with.
+     * Checks if signup token is valid and returns the user it's associated with.
+     * 
+     * @param token a signup token.
      */
     public Optional<User> checkToken(String token) {
+        cache = cacheManager.getCache(USER_REGISTRATION_CACHE);
         Cache.ValueWrapper wrapper = cache.get(token);
         if (wrapper == null) {
             Optional.empty();
         }
         User user = (User) wrapper.get();
         return Optional.of(user);
-    }
-
-    @PostConstruct
-    public void init(){
-        cache = cacheManager.getCache(USER_REGISTRATION_CACHE);
     }
 }
