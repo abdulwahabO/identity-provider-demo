@@ -2,7 +2,7 @@
 
 # About
 
-A small demo showing how redirection-based OAuth2 flows could support passwordless authentication using one-time passwords(OTP) sent via SMS.
+A demo that uses passwordless authentication in redirection-based OAuth2 flows. The project implements an OAuth2 server that supports the Implicit and Authorization code grant types, and authenticates users using a combination of email and a one-time password(OTP) sent via text.
 
 # Modules
 
