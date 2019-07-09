@@ -2,7 +2,7 @@
 
 # About
 
-A demo that uses passwordless authentication in redirection-based OAuth2 flows. The project implements an OAuth2 server that supports the Implicit and Authorization code grant types, and authenticates users using a combination of email and a one-time password(OTP) sent via text.
+A demo of passwordless authentication in redirection-based OAuth2 flows. The project implements an OAuth2 server that supports the Implicit and Authorization code grant types, and authenticates users using a combination of email and a one-time password(OTP) sent via text.
 
 # Modules
 
